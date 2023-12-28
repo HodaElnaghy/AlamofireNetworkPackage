@@ -17,7 +17,7 @@ public protocol APIClientProtocol {
 }
 
 extension APIClientProtocol {
-    func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M?, ApiError>) -> Void) {
+   public func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M?, ApiError>) -> Void) {
         
         let method = Alamofire.HTTPMethod(rawValue: target.method.rawValue)
         let headers = Alamofire.HTTPHeaders(target.headers ?? [:])
