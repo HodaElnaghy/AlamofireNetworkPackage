@@ -11,7 +11,7 @@ import Alamofire
 public protocol APIClientProtocol {
     associatedtype T where T: APIRequest
     
-    func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M?, ApiError>) -> Void)
+    func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M, ApiError>) -> Void)
     
     func startUploadRequest()
 }
