@@ -55,7 +55,6 @@ extension APIClientProtocol {
         let headers = Alamofire.HTTPHeaders(target.headers ?? [:])
         let parameters = buildParams(parameter: target.parameter)
       //  let encoding = buildParameterEncoding(encoding: target.encoding)
-
         
         AF.upload(multipartFormData: { multipartFormData in
             for (key, value) in parameters {
