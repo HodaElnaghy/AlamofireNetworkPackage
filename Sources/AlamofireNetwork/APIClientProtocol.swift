@@ -13,11 +13,11 @@ public protocol APIClientProtocol {
     
     func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M, ApiError>) -> Void)
     
-    func startUploadRequest()
+    func startUploadRequest<M: Codable>(target: T, responseModel: M.Type,fileExt: String  ,completion: @escaping (Result<M?, ApiError>) -> Void)
 }
 
 extension APIClientProtocol {
-   public func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M, ApiError>) -> Void) {
+    public func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M, ApiError>) -> Void) {
         
         let method = Alamofire.HTTPMethod(rawValue: target.method.rawValue)
         let headers = Alamofire.HTTPHeaders(target.headers ?? [:])
@@ -40,7 +40,7 @@ extension APIClientProtocol {
                         completion(.failure(ApiError.errorDecoding))
                         return
                     }
-                        print("\(responseModel) result returned successfully")
+                    print("\(responseModel) result returned successfully")
                     completion(.success(response))
                     
                 } else {
@@ -49,28 +49,78 @@ extension APIClientProtocol {
                 }
             }
     }
-    //([String: Any], ParameterEncoding)
-    private func buildParams(parameter: Parameter) -> ([String: Any]){
-        switch parameter {
+    
+    func startUploadRequest<M: Codable>(target: T, responseModel: M.Type,fileExt: String ,completion: @escaping (Result<M?, ApiError>) -> Void) {
+        let method = Alamofire.HTTPMethod(rawValue: target.method.rawValue)
+        let headers = Alamofire.HTTPHeaders(target.headers ?? [:])
+        let parameters = buildParams(parameter: target.parameter)
+        
+        
+        AF.upload(multipartFormData: { multipartFormData in
+            for (key, value) in parameters {
+                if let string = value as? String {
+                    multipartFormData.append(string.data(using: .utf8)!, withName: key)
+                }
+                if let integer = value as? Int {
+                    multipartFormData.append("\(integer)".data(using: .utf8)!, withName: key)
+                }
+                if let double = value as? Double {
+                    multipartFormData.append("\(double)".data(using: .utf8)!, withName: key)
+                }
+                if let data = value as? Data {
+                    multipartFormData.append(data, withName: key, fileName: "swift_file\(fileExt)", mimeType: "media/\(fileExt)")
+                }
+            }
+        },to: target.baseURL + target.path, method: method, headers: headers).uploadProgress(queue: .main, closure: { progress in
+                        print("Upload Progress: \(progress.fractionCompleted)")
+                    })
+        .responseDecodable(of: responseModel) { (response) in
+            guard let statusCode = response.response?.statusCode else {
+                print("Can't get status code")
+                completion(.failure(ApiError.unknownError))
+                return
+            }
             
-        case .requestPlain:
-           // return ([:], URLEncoding.default)
-            return ([:])
-            // case .requestParameters(parameter: let parameters, encoding: let encoding)
-        case .requestParameters(parameter: let parameters):
-            return (parameters)
+            if statusCode == 200 {
+                guard let response = try? response.result.get() else {
+                    print("Error while getting response")
+                    completion(.failure(ApiError.errorDecoding))
+                    return
+                }
+                print("\(responseModel) result returned successfully")
+                completion(.success(response))
+                
+            } else {
+                print("Status code not successful 200")
+                completion(.failure(ApiError.serverError))
+            }
         }
     }
-    
-    private func buildParameterEncoding(encoding: ParametersEncoding) -> ParameterEncoding {
-        switch encoding {
-        case .noParam:
-            return URLEncoding.default
-        case .httpBody:
-            return URLEncoding.httpBody
-        case .queryString:
-            return URLEncoding.queryString
-        }
+
+
+
+//([String: Any], ParameterEncoding)
+private func buildParams(parameter: Parameter) -> ([String: Any]){
+    switch parameter {
+        
+    case .requestPlain:
+        // return ([:], URLEncoding.default)
+        return ([:])
+        // case .requestParameters(parameter: let parameters, encoding: let encoding)
+    case .requestParameters(parameter: let parameters):
+        return (parameters)
     }
-    
+}
+
+private func buildParameterEncoding(encoding: ParametersEncoding) -> ParameterEncoding {
+    switch encoding {
+    case .noParam:
+        return URLEncoding.default
+    case .httpBody:
+        return URLEncoding.httpBody
+    case .queryString:
+        return URLEncoding.queryString
+    }
+}
+
 }
