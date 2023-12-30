@@ -50,11 +50,12 @@ extension APIClientProtocol {
             }
     }
     
-    func startUploadRequest<M: Codable>(target: T, responseModel: M.Type,fileExt: String ,completion: @escaping (Result<M?, ApiError>) -> Void) {
+    func startUploadRequest<M: Codable>(target: T, responseModel: M.Type, completion: @escaping (Result<M?, ApiError>) -> Void) {
         let method = Alamofire.HTTPMethod(rawValue: target.method.rawValue)
         let headers = Alamofire.HTTPHeaders(target.headers ?? [:])
         let parameters = buildParams(parameter: target.parameter)
-        
+      //  let encoding = buildParameterEncoding(encoding: target.encoding)
+
         
         AF.upload(multipartFormData: { multipartFormData in
             for (key, value) in parameters {
@@ -68,7 +69,7 @@ extension APIClientProtocol {
                     multipartFormData.append("\(double)".data(using: .utf8)!, withName: key)
                 }
                 if let data = value as? Data {
-                    multipartFormData.append(data, withName: key, fileName: "swift_file\(fileExt)", mimeType: "media/\(fileExt)")
+                    multipartFormData.append(data, withName: key, fileName: "file.png", mimeType: "image/png")
                 }
             }
         },to: target.baseURL + target.path, method: method, headers: headers).uploadProgress(queue: .main, closure: { progress in
