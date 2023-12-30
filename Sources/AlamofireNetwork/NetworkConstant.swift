@@ -17,8 +17,6 @@ public enum HTTPMethod: String{
 
 public enum Parameter{
     case requestPlain
-   // case requestParameters(parameter: [String: Any] , encoding: ParameterEncoding)
-    // case httpBody(_:[String:Any])
     case requestParameters( parameter: [String: Any] )
 
 }
@@ -28,7 +26,7 @@ public enum ParametersEncoding {
     case httpBody
     case queryString
 }
-//ParameterEncoding
+
 public protocol APIRequest {
 
     var baseURL: String { get }
