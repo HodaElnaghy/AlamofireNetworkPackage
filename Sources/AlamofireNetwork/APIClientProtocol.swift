@@ -7,8 +7,11 @@
 
 import Foundation
 import Alamofire
+public protocol BuildParameter {
+    func buildParams(parameter: Parameter) -> ([String: Any])
+}
 
-public protocol APIClientProtocol {
+public protocol APIClientProtocol: BuildParameter {
     associatedtype T where T: APIRequest
     
     func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M, ApiError>) -> Void)
