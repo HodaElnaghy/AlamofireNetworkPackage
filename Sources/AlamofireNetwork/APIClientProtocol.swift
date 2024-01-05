@@ -13,7 +13,7 @@ public protocol APIClientProtocol {
     associatedtype T where T: APIRequest
     
     func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M, ApiError>) -> Void)
-    func startUploadRequest<M: Codable>(target: T, responseModel: M.Type,fileExt: String  ,completion: @escaping (Result<M?, ApiError>) -> Void)
+    func startUploadRequest<M: Codable>(target: T, responseModel: M.Type , multipartFormData:  @escaping (MultipartFormData) -> Void ,completion: @escaping (Result<M?, ApiError>) -> Void)
 }
 
 extension APIClientProtocol {
@@ -50,7 +50,7 @@ extension APIClientProtocol {
             }
     }
     
-    func startUploadRequest<M: Codable>(target: T, responseModel: M.Type, completion: @escaping (Result<M?, ApiError>) -> Void) {
+    func startUploadRequest<M: Codable>(target: T, responseModel: M.Type, multipartFormData:  @escaping (MultipartFormData) -> Void ,completion: @escaping (Result<M?, ApiError>) -> Void) {
         let method = Alamofire.HTTPMethod(rawValue: target.method.rawValue)
         let headers = Alamofire.HTTPHeaders(target.headers ?? [:])
         let parameters = buildParams(parameter: target.parameter)
