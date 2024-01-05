@@ -27,7 +27,7 @@ public enum ParametersEncoding {
     case queryString
 }
 
-public protocol APIRequest {
+public protocol APIRequest: APIUploadRequestProtocol {
 
     var baseURL: String { get }
 
@@ -40,4 +40,11 @@ public protocol APIRequest {
     var encoding: ParametersEncoding { get }
     
     var headers: [String: String]? { get }
+}
+
+public protocol APIUploadRequestProtocol {
+    var multiPartFormData: (MultipartFormData) -> Void { get }
+    var data: Data { get }
+    var fileName: String { get }
+    var mimeType: String { get }
 }

@@ -7,11 +7,9 @@
 
 import Foundation
 import Alamofire
-public protocol BuildParameter {
-    func buildParams(parameter: Parameter) -> ([String: Any])
-}
 
-public protocol APIClientProtocol: BuildParameter {
+
+public protocol APIClientProtocol {
     associatedtype T where T: APIRequest
     
     func startRequest<M: Decodable>(target: T, responseModel: M.Type, completion: @escaping (Result<M, ApiError>) -> Void)
@@ -57,22 +55,24 @@ extension APIClientProtocol {
         let headers = Alamofire.HTTPHeaders(target.headers ?? [:])
         let parameters = buildParams(parameter: target.parameter)
         
-        AF.upload(multipartFormData: { multipartFormData in
-            for (key, value) in parameters {
-                if let string = value as? String {
-                    multipartFormData.append(string.data(using: .utf8)!, withName: key)
-                }
-                if let integer = value as? Int {
-                    multipartFormData.append("\(integer)".data(using: .utf8)!, withName: key)
-                }
-                if let double = value as? Double {
-                    multipartFormData.append("\(double)".data(using: .utf8)!, withName: key)
-                }
-                if let data = value as? Data {
-                    multipartFormData.append(data, withName: key, fileName: "file.png", mimeType: "image/png")
-                }
-            }
-        },to: target.baseURL + target.path, method: method, headers: headers).uploadProgress(queue: .main, closure: { progress in
+        AF.upload(multipartFormData: target.multiPartFormData
+//                    { multipartFormData in
+//            for (key, value) in parameters {
+//                if let string = value as? String {
+//                    multipartFormData.append(string.data(using: .utf8)!, withName: key)
+//                }
+//                if let integer = value as? Int {
+//                    multipartFormData.append("\(integer)".data(using: .utf8)!, withName: key)
+//                }
+//                if let double = value as? Double {
+//                    multipartFormData.append("\(double)".data(using: .utf8)!, withName: key)
+//                }
+//                if let data = value as? Data {
+//                    multipartFormData.append(data, withName: key, fileName: "file.png", mimeType: "image/png")
+//                }
+//            }
+//        }
+                  ,to: target.baseURL + target.path, method: method, headers: headers).uploadProgress(queue: .main, closure: { progress in
             print("Upload Progress: \(progress.fractionCompleted)")
         })
         .responseDecodable(of: responseModel) { (response) in
